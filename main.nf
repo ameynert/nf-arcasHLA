@@ -6,12 +6,12 @@ def helpMessage() {
 
     The typical command for running the pipeline is as follows:
 
-    nextflow run ameynert/nf-arcasHLA --input '*.bam' --outdir 'output'
+    nextflow run ameynert/nf-arcasHLA --input '*.bam' --outdir 'output' --name 'batch_name'
 
     """.stripIndent()
 }
 
-// Show help emssage
+// Show help message
 params.help = false
 if (params.help){
     helpMessage()
@@ -28,6 +28,7 @@ println "['Pipeline Name']     = ameynert/nf-arcasHLA"
 println "['Pipeline Version']  = workflow.manifest.version"
 println "['Input']             = $params.input"
 println "['Output dir']        = $params.output"
+println "['Name']              = $params.name"
 println "['Working dir']       = workflow.workDir"
 println "['Container Engine']  = workflow.containerEngine"
 println "['Current home']      = $HOME"
@@ -52,7 +53,7 @@ Channel
  */
 process extract_reads {
 
-    publishDir params.outdir, mode: 'copy' // only for log file
+    publishDir params.outdir, mode: 'copy', pattern: '*.log' // only for log file
 
     input:
     set val(name), file(alignment) from input_ch
@@ -79,10 +80,30 @@ process genotype {
 
     output:
     file("*.log")
-    set val(name), file('*.json') into genotype_ch
+    file('*.json') into genotype_ch
 
     script:
     """
     arcasHLA genotype ${reads} -g A,B,C,DPB1,DQB1,DQA1,DRB1 -o . -t ${task.cpus} --log ${name}.genotype.log --temp \$TMPDIR
     """
+}
+
+/*
+ * Merge results
+ */
+process merge {
+
+   publishDir params.outdir, mode: 'copy'
+
+   input:
+   file(output) from genotype_ch.collect()
+
+   output:
+   file('*.tsv') into merged_ch
+
+   script:
+   """
+   arcasHLA merge --indir . --outdir . --run ${params.name}
+   """
+
 }
