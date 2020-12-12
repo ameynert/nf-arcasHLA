@@ -53,8 +53,6 @@ Channel
  */
 process extract_reads {
 
-    publishDir params.outdir, mode: 'copy', pattern: '*.log' // only for log file
-
     input:
     set val(name), file(alignment) from input_ch
 
@@ -72,8 +70,6 @@ process extract_reads {
  * Genotype
  */
 process genotype {
-
-    publishDir params.outdir, mode: 'copy'
 
     input:
     set val(name), file(reads) from reads_ch
@@ -94,6 +90,7 @@ process genotype {
 process merge {
 
    publishDir params.outdir, mode: 'copy'
+   validExitStatus 0,1
 
    input:
    file(output) from genotype_ch.collect()
@@ -104,6 +101,7 @@ process merge {
    script:
    """
    arcasHLA merge --indir . --outdir . --run ${params.name}
+   perl -pi -e 's/Aligned//' ${params.name}.genotypes.tsv
    """
 
 }
