@@ -6,4 +6,4 @@ channels:
   - bioconda
   - defaults
 dependencies:
-  - bioconda::arcas-hla=0.2.0-0
+  - bioconda::arcas-hla=0.2.5-0
