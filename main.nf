@@ -62,7 +62,7 @@ process extract_reads {
 
     script:
     """
-    arcasHLA extract ${alignment} -o . --paired --unmapped -t ${task.cpus} --log ${name}.extract.log --temp \$TMPDIR
+    arcasHLA extract ${alignment} -o . --unmapped -t ${task.cpus} --log ${name}.extract.log --temp \$TMPDIR
     """
 }
 
